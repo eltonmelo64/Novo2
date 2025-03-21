@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Livros</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Catálogo de Livros</h1>
+    <h2>Bem-vindo ao nosso catálogo de livros! Aqui, você encontrará histórias incríveis para mergulhar e se encantar. Explore e descubra sua próxima leitura favorita!</h2>
+
+    
+    <img src="{{ url_for('static', filename='Livros.png') }}" alt="boas-vindas" />
+
+    <div class="livros-lista">
+        <h3>Lista de Livros Cadastrados:</h3>
+        <div id="livros-container">
+            
+        </div>
+    </div>
+
+    <div class="formulario">
+        <h3>Adicionar um Novo Livro</h3>
+        <form id="livro-form">
+            <input type="text" id="titulo" placeholder="Título" required>
+            <input type="text" id="categoria" placeholder="Categoria" required>
+            <input type="text" id="autor" placeholder="Autor" required>
+            <input type="text" id="imagem_url" placeholder="URL da Imagem" required>
+            <button type="submit">Adicionar Livro</button>
+        </form>
+    </div>
+
+    <script>
+        // Função para carregar os livros do servidor
+        function carregarLivros() {
+            fetch('/livros')
+                .then(response => response.json())
+                .then(livros => {
+                    const livrosContainer = document.getElementById('livros-container');
+                    livrosContainer.innerHTML = ''; 
+                    livros.forEach(livro => {
+                        const livroDiv = document.createElement('div');
+                        livroDiv.classList.add('livro');
+                        livroDiv.innerHTML = `
+                            <img src="${livro.imagem_url}" alt="Imagem do Livro">
+                            <div class="livro-info">
+                                <h4>${livro.titulo}</h4>
+                                <p><strong>Categoria:</strong> ${livro.categoria}</p>
+                                <p><strong>Autor:</strong> ${livro.autor}</p>
+                            </div>
+                        `;
+                        livrosContainer.appendChild(livroDiv);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar livros:', error));
+        }
+
+        // Função para enviar o formulário e adicionar um novo livro
+        document.getElementById('livro-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const titulo = document.getElementById('titulo').value;
+            const categoria = document.getElementById('categoria').value;
+            const autor = document.getElementById('autor').value;
+            const imagem_url = document.getElementById('imagem_url').value;
+
+            const livroData = {
+                titulo: titulo,
+                categoria: categoria,
+                autor: autor,
+                imagem_url: imagem_url
+            };
+
+            fetch('/doar', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(livroData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.mensagem);
+                carregarLivros(); 
+            })
+            .catch(error => {
+                alert('Erro ao cadastrar o livro');
+                console.error('Erro:', error);
+            });
+        });
+
+        
+        window.onload = carregarLivros;
+    </script>
+</body>
+</html>
